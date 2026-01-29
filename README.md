@@ -11,8 +11,6 @@ $$F_{task} = -(K e + D \dot{e})$$
 
 
 
-[Image of mass-spring-damper system model]
-
 
 **Where:**
 * **$K$ (Stiffness):** Defined as `stiffness_diag = [150, 150, 150, 10, 10, 10]`. It pulls the robot back to the equilibrium point.
