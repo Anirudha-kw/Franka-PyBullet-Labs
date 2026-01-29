@@ -52,3 +52,7 @@ $$\tau_{total} = \tau_{task} + \tau_g + \tau_C$$
 ### Prerequisites
 ```bash
 pip install pybullet numpy
+
+**### Simulation**
+```bash
+python franka_impedance_control.py
