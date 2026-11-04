@@ -1,6 +1,13 @@
-# Franka Panda Impedance Control
+# Manipulator Sim
 
-This repository contains Python implementations of **Cartesian** and **joint impedance controllers** for the Franka Emika Panda robot using `pybullet`. Unlike standard position control, these approaches allow the robot to interact compliantly with its environment, behaving like a tunable mass-spring-damper system.
+Robot-manipulator control in simulation, starting with **Cartesian** and **joint impedance controllers** for the Franka arm. Unlike standard position control, these approaches allow the robot to interact compliantly with its environment, behaving like a tunable mass-spring-damper system.
+
+Each controller is implemented in two physics engines:
+
+| Engine | Folder | Runs on |
+|---|---|---|
+| [PyBullet](https://pybullet.org) | [`pybullet_sim/`](pybullet_sim) | CPU, one robot |
+| [NVIDIA Newton](https://github.com/newton-physics/newton) | [`newton_sim/`](newton_sim) | GPU (CUDA) or CPU, many robots in parallel |
 
 ## Cartesian Impedance Control
 
@@ -51,7 +58,7 @@ $$\tau_{total} = \tau_{task} + \tau_g + \tau_C$$
   <em>Joint impedance control in PyBullet: each joint acts as a torsional spring-damper that pulls the arm back to its desired pose.</em>
 </p>
 
-Instead of a spring at the end-effector, [`joint_impedance.py`](joint_impedance.py) places a torsional spring-damper on every joint, pulling the arm back to the desired configuration $q_d$:
+Instead of a spring at the end-effector, the joint impedance controller ([PyBullet](pybullet_sim/joint_impedance.py), [Newton](newton_sim/joint_impedance.py)) places a torsional spring-damper on every joint, pulling the arm back to the desired configuration $q_d$:
 
 $$\tau_{task} = K (q_d - q) - D \dot{q}$$
 
@@ -61,7 +68,7 @@ $$\tau_{task} = K (q_d - q) - D \dot{q}$$
 No Jacobian is needed, since the error is measured directly in joint space. Because all seven joints are held, the elbow cannot drift in the null space as it can under Cartesian control. Gravity and Coriolis compensation are the same as above.
 
 ```python
-# joint_impedance.py: control law inside step()
+# pybullet_sim/joint_impedance.py: control law inside step()
 tau_task = self.K @ (self.q_d - q) - self.D @ dq
 tau_grav, tau_coriolis = self.get_dynamics(q_all, dq_all)
 tau_d = tau_task + tau_coriolis + tau_grav
@@ -79,13 +86,19 @@ tau_d = tau_task + tau_coriolis + tau_grav
 
 ## Getting Started
 
-### Prerequisites
+### PyBullet
 ```bash
 pip install pybullet numpy
+python pybullet_sim/cartesian_impedance.py   # Cartesian impedance control
+python pybullet_sim/joint_impedance.py       # Joint impedance control
 ```
 
-### Run this for simulation
+### NVIDIA Newton (GPU)
 ```bash
-python cartesian_impedance.py   # Cartesian impedance control
-python joint_impedance.py       # Joint impedance control
+pip install "newton[examples]"
+python newton_sim/cartesian_impedance.py                  # one robot in the interactive viewer
+python newton_sim/joint_impedance.py --num-worlds 256     # 256 robots in parallel on the GPU
 ```
+Right-click and drag on the robot to pull on it. Useful options: `--device cuda:0` or `cpu`, `--viewer null` to run headless, `--solver featherstone` to switch from the default MuJoCo Warp solver.
+
+The Newton scripts run the same control laws, gains and neutral pose as Warp kernels, with one robot per simulated world, so the whole batch stays on the GPU. They use the Franka Research 3 (FR3) model from Newton's asset library, which is downloaded on first run. Without a GPU they still run on the CPU, but slower than real time. With `--solver featherstone`, the Cartesian controller's elbow can drift, since nothing damps its null-space motion.
