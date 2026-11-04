@@ -1,4 +1,4 @@
-# Manipulator Sim
+# Robotic Manipulation
 
 Robot-manipulator control in simulation, starting with **Cartesian** and **joint impedance controllers** for the Franka arm. Unlike standard position control, these approaches allow the robot to interact compliantly with its environment, behaving like a tunable mass-spring-damper system.
 
@@ -73,6 +73,14 @@ tau_task = self.K @ (self.q_d - q) - self.D @ dq
 tau_grav, tau_coriolis = self.get_dynamics(q_all, dq_all)
 tau_d = tau_task + tau_coriolis + tau_grav
 ```
+
+### In NVIDIA Newton
+
+<p align="center">
+  <img src="images/newton_joint_impedance_demo.gif" alt="Animated NVIDIA Newton simulation of the Franka FR3 under joint impedance control being pulled sideways and upward, with a translucent ghost of the desired pose, a force arrow and curved torque arrows" width="720">
+  <br>
+  <em>The same joint impedance controller in NVIDIA Newton (Franka FR3). The translucent arm is the desired pose the joints are pulled back to.</em>
+</p>
 
 ---
 
