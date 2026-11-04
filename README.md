@@ -5,7 +5,7 @@ This repository contains a Python implementation of a **Cartesian Impedance Cont
 <p align="center">
   <img src="images/franka_impedance_demo.gif" alt="Animated PyBullet simulation of the Franka Panda being pulled sideways and upward, then springing back to its equilibrium point, with force arrows" width="720">
   <br>
-  <em>Cartesian impedance control in PyBullet: a 20&nbsp;N external pull (red) displaces the end-effector by about F/K&nbsp;=&nbsp;20/150&nbsp;≈&nbsp;13&nbsp;cm, and the impedance force −K·e&nbsp;−&nbsp;D·ė (blue) pulls it back to the equilibrium x<sub>d</sub> once released.</em>
+  <em>Cartesian impedance control in PyBullet: the end-effector yields to an external force and springs back to equilibrium when released.</em>
 </p>
 
 ## ## Core Concepts
