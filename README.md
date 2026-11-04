@@ -2,6 +2,12 @@
 
 This repository contains a Python implementation of a **Cartesian Impedance Controller** for the Franka Emika Panda robot using `pybullet`. Unlike standard position control, this approach allows the robot to interact compliantly with its environment, behaving like a tunable mass-spring-damper system.
 
+<p align="center">
+  <img src="images/franka_panda_env.png" alt="Franka Emika Panda arm in the PyBullet simulation environment" width="600">
+  <br>
+  <em>The Franka Emika Panda in the PyBullet environment, holding its neutral pose under Cartesian impedance control.</em>
+</p>
+
 ## ## Core Concepts
 
 ### 1. Cartesian Impedance Physics
