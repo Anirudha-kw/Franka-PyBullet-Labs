@@ -1,14 +1,14 @@
-# Franka Panda Cartesian Impedance Control
+# Franka Panda Impedance Control
 
-This repository contains a Python implementation of a **Cartesian Impedance Controller** for the Franka Emika Panda robot using `pybullet`. Unlike standard position control, this approach allows the robot to interact compliantly with its environment, behaving like a tunable mass-spring-damper system.
+This repository contains Python implementations of **Cartesian** and **joint impedance controllers** for the Franka Emika Panda robot using `pybullet`. Unlike standard position control, these approaches allow the robot to interact compliantly with its environment, behaving like a tunable mass-spring-damper system.
+
+## Cartesian Impedance Control
 
 <p align="center">
   <img src="images/franka_impedance_demo.gif" alt="Animated PyBullet simulation of the Franka Panda being pulled sideways and upward, then springing back to its equilibrium point, with force arrows" width="720">
   <br>
   <em>Cartesian impedance control in PyBullet: the end-effector yields to an external force and springs back to equilibrium when released.</em>
 </p>
-
-## ## Core Concepts
 
 ### 1. Cartesian Impedance Physics
 The controller simulates a physical spring-damper connected to the robot's end-effector. The desired dynamic behavior is governed by:
@@ -43,15 +43,41 @@ $$\tau_{total} = \tau_{task} + \tau_g + \tau_C$$
 
 ---
 
-## ## Engineering & Safety Features
+## Joint Impedance Control
 
-* **1kHz Control Loop:** The simulation runs at $1000\text{Hz}$ ($dt=0.001$) to maintain numerical stability. High frequency is critical for haptic-like stability.
-* **Torque Rate Limiting:** Torques are clipped to a maximum change of $1000\text{Nm/s}$, mimicking the hardware safety limits of the real Franka Emika Panda.
-* **Orientation Error:** Uses a small-angle approximation via rotation matrices to compute the shortest path rotation error: $R_{\Delta} = R_{curr}^T R_d$.
+<p align="center">
+  <img src="images/joint_impedance_demo.gif" alt="Animated PyBullet simulation of the Franka Panda being pulled sideways and upward, with curved torque arrows at each joint and a faint ghost of the desired pose" width="720">
+  <br>
+  <em>Joint impedance control in PyBullet: each joint acts as a torsional spring-damper that pulls the arm back to its desired pose.</em>
+</p>
+
+Instead of a spring at the end-effector, [`joint_impedance.py`](joint_impedance.py) places a torsional spring-damper on every joint, pulling the arm back to the desired configuration $q_d$:
+
+$$\tau_{task} = K (q_d - q) - D \dot{q}$$
+
+* **$K$ (Stiffness):** `stiffness_diag = [100, 100, 100, 100, 40, 30, 10]` Nm/rad, stiffer at the shoulder and softer towards the wrist.
+* **$D$ (Damping):** $D = 2\sqrt{K}$, as in the Cartesian controller.
+
+No Jacobian is needed, since the error is measured directly in joint space. Because all seven joints are held, the elbow cannot drift in the null space as it can under Cartesian control. Gravity and Coriolis compensation are the same as above.
+
+```python
+# joint_impedance.py: control law inside step()
+tau_task = self.K @ (self.q_d - q) - self.D @ dq
+tau_grav, tau_coriolis = self.get_dynamics(q_all, dq_all)
+tau_d = tau_task + tau_coriolis + tau_grav
+```
 
 ---
 
-## ## Getting Started
+## Engineering & Safety Features
+
+* **1kHz Control Loop:** The simulation runs at $1000\text{Hz}$ ($dt=0.001$) to maintain numerical stability. High frequency is critical for haptic-like stability.
+* **Torque Rate Limiting:** Torques are clipped to a maximum change of $1000\text{Nm/s}$, mimicking the hardware safety limits of the real Franka Emika Panda.
+* **Orientation Error (Cartesian controller):** Uses a small-angle approximation via rotation matrices to compute the shortest path rotation error: $R_{\Delta} = R_{curr}^T R_d$.
+
+---
+
+## Getting Started
 
 ### Prerequisites
 ```bash
@@ -60,5 +86,6 @@ pip install pybullet numpy
 
 ### Run this for simulation
 ```bash
-python cartesian_impedance.py
+python cartesian_impedance.py   # Cartesian impedance control
+python joint_impedance.py       # Joint impedance control
 ```
